@@ -1,0 +1,30 @@
+name: set
+on:
+  workflow_dispatch:
+    inputs:
+      key:
+        description: 'key'
+        required: true
+      value:
+        description: 'value'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Repository
+        uses: actions/checkout@v3
+      - name: Set Git
+        run: |
+          mkdir -p ~/.ssh/
+          echo "${{ secrets.PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+          git config --global user.name ${{ secrets.GIT_USERNAME }}
+          git config --global user.email ${{ secrets.GIT_EMAIL }}
+      - name: Push File
+        run: |
+          echo "${{ inputs.value }}" > ${{ inputs.key }}
+          git add ${{ inputs.key }}
+          git commit -m "set ${{ inputs.key }}"
+          git branch -M main
+          git push -u origin main
